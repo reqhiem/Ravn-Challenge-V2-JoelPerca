@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:15
+    container_name: sip-savor-db
+    environment:
+      POSTGRES_USER: sip-savor-user
+      POSTGRES_PASSWORD: sip-savor-pw
+      POSTGRES_DB: sip-savor-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:
+    driver: local
