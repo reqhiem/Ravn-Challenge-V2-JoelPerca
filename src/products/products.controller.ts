@@ -28,11 +28,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PaginatedProductsDto } from './dto/paginated-products.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { Product } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { generateFilename } from 'src/lib/helper';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { HasRoles } from 'src/auth/decorator/has-roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiTags('products')
 @Controller('products')
@@ -52,6 +55,8 @@ export class ProductsController {
     type: Product,
   })
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -90,8 +95,6 @@ export class ProductsController {
     status: HttpStatus.OK,
     type: Product,
   })
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOne(id);
@@ -110,7 +113,8 @@ export class ProductsController {
     type: Product,
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -129,7 +133,8 @@ export class ProductsController {
     type: Product,
   })
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.remove(+id);
@@ -158,7 +163,8 @@ export class ProductsController {
   })
   @ApiBearerAuth()
   @Post(':id/upload')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @UseInterceptors(
     FilesInterceptor('images', 5, {
       storage: diskStorage({
@@ -175,5 +181,18 @@ export class ProductsController {
     @UploadedFiles() images: Express.Multer.File[],
   ) {
     return this.productsService.uploadImage(+id, images);
+  }
+
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+  })
+  @ApiBearerAuth()
+  @Patch(':id/disable')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
+  disable(@Param('id', ParseIntPipe) id: number) {
+    return this.productsService.disable(id);
   }
 }

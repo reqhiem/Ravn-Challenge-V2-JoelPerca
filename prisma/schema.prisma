@@ -37,6 +37,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   orders Order[]
+  likes  LikeProduct[]
 }
 
 model Product {
@@ -51,6 +52,7 @@ model Product {
 
   images     ProductImage[]
   orderItems OrderItem[]
+  likes      LikeProduct[]
 }
 
 model ProductImage {
@@ -78,10 +80,21 @@ model OrderItem {
   id        Int      @id @default(autoincrement())
   orderId   Int
   productId Int
-  quantity  Int     @default(1)
+  quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model LikeProduct {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  productId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 }

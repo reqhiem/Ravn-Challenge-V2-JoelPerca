@@ -10,6 +10,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
+import { JwtModule } from '@nestjs/jwt';
+import { RolesGuard } from './auth/guard/roles.guard';
+
+const JWT_SECRET = process.env.JWT_SECRET || '';
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '1h';
 
 @Module({
   imports: [
@@ -28,8 +33,19 @@ import configuration from './config/configuration';
       load: [configuration],
       isGlobal: true,
     }),
+    JwtModule.register({
+      secret: JWT_SECRET,
+      signOptions: { expiresIn: JWT_EXPIRATION },
+      global: true,
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: 'APP_GUARD',
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}
