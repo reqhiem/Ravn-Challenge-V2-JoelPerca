@@ -5,10 +5,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedProductsDto } from './dto/paginated-products.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   create(createProductDto: CreateProductDto) {
     const payload: Prisma.ProductCreateInput = {
@@ -65,7 +69,20 @@ export class ProductsService {
     return this.prismaService.product.delete({ where: { id } });
   }
 
-  uploadImage(productId: number, images: Express.Multer.File[]) {
-    console.log({ productId, images });
+  async uploadImage(productId: number, images: Express.Multer.File[]) {
+    const HOST_URL = this.configService.get<string>('hostUrl');
+    const createsManyPayload = images.map((image) => ({
+      productId,
+      url: `${HOST_URL}/${image.path}`,
+    }));
+
+    await this.prismaService.productImage.createMany({
+      data: createsManyPayload,
+    });
+
+    return this.prismaService.product.findFirstOrThrow({
+      where: { id: productId },
+      include: { images: true },
+    });
   }
 }

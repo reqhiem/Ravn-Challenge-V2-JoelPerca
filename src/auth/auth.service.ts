@@ -9,14 +9,14 @@ import * as bcrypt from 'bcrypt';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Prisma, User } from '@prisma/client';
 import { SignInDto } from './dto/sign-in.dto';
-
-const BCRYPT_SALT_ROUNDS = Number(process.env.BCRYPT_SALT_ROUNDS) || 10;
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   async signIn(signInDto: SignInDto) {
@@ -41,6 +41,8 @@ export class AuthService {
   }
 
   async signUp(data: SignUpDto) {
+    const BCRYPT_SALT_ROUNDS =
+      this.configService.get<number>('bcryptSaltRounds');
     const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
     const hashedPassword = await bcrypt.hash(data.password, salt);
 
