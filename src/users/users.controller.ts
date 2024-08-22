@@ -1,9 +1,14 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from '@prisma/client';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RetrieveUserDto } from './dto/retrive-user.dto';
-import { NotFoundError } from 'rxjs';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @ApiTags('users')
@@ -24,7 +29,7 @@ export class UsersController {
   async findOne(@Param('id') id: string): Promise<User> {
     const user: User = await this.usersService.findOne(+id);
     if (!user) {
-      throw new NotFoundError(`User not found`);
+      throw new NotFoundException(`User not found`);
     }
     return user;
   }
