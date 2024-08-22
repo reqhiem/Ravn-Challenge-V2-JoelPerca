@@ -1,36 +1,37 @@
 import {
   Controller,
   Get,
-  NotFoundException,
   Param,
+  ParseIntPipe,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RetrieveUserDto } from './dto/retrive-user.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { HasRoles } from 'src/auth/decorator/has-roles.decorator';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
+  @Get()
   async findAll(): Promise<User[]> {
     return await this.usersService.findAll();
   }
 
-  @Get(':id')
   @ApiParam({ name: 'id', type: 'number' })
   @ApiResponse({ status: 200, type: RetrieveUserDto })
-  async findOne(@Param('id') id: string): Promise<User> {
-    const user: User = await this.usersService.findOne(+id);
-    if (!user) {
-      throw new NotFoundException(`User not found`);
-    }
-    return user;
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<User> {
+    return this.usersService.findOne(id);
   }
 }
