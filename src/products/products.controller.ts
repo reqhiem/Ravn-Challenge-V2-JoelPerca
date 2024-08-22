@@ -21,6 +21,7 @@ import { PaginationQueryDto } from './dto/pagination-query.dto';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiParam,
   ApiQuery,
   ApiResponse,
@@ -31,6 +32,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Product } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { generateFilename } from 'src/lib/helper';
 
 @ApiTags('products')
 @Controller('products')
@@ -138,6 +140,23 @@ export class ProductsController {
     type: Number,
     required: true,
   })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    required: true,
+    schema: {
+      type: 'object',
+      properties: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
   @Post(':id/upload')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -145,13 +164,7 @@ export class ProductsController {
       storage: diskStorage({
         destination: './public/uploads',
         filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const nameTab = file.originalname.split('.');
-          const subArray = nameTab.slice(0, -1);
-          const originalName = subArray.join('');
-          const ext = `.${nameTab[nameTab.length - 1]}`;
-          const filename = `${originalName}-${uniqueSuffix}${ext}`;
+          const filename = generateFilename(file);
           cb(null, filename);
         },
       }),
