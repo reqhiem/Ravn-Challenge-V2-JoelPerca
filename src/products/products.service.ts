@@ -85,4 +85,11 @@ export class ProductsService {
       include: { images: true },
     });
   }
+
+  disable(productId: number) {
+    return this.prismaService.product.update({
+      where: { id: productId },
+      data: { isDisabled: true },
+    });
+  }
 }
