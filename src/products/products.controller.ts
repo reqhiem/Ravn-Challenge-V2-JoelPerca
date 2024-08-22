@@ -28,11 +28,14 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { PaginatedProductsDto } from './dto/paginated-products.dto';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { Product } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { generateFilename } from 'src/lib/helper';
+import { RolesGuard } from 'src/auth/guard/roles.guard';
+import { HasRoles } from 'src/auth/decorator/has-roles.decorator';
+import { Role } from '@prisma/client';
 
 @ApiTags('products')
 @Controller('products')
@@ -52,6 +55,8 @@ export class ProductsController {
     type: Product,
   })
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
