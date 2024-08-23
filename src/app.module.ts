@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 import { JwtModule } from '@nestjs/jwt';
 import { RolesGuard } from './auth/guard/roles.guard';
+import { OrdersModule } from './orders/orders.module';
 
 const JWT_SECRET = process.env.JWT_SECRET || '';
 const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '1h';
@@ -21,6 +22,7 @@ const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '1h';
     AuthModule,
     UsersModule,
     ProductsModule,
+    OrdersModule,
     PrismaModule,
     MulterModule.register({
       dest: './public/uploads',
