@@ -14,7 +14,6 @@ export class OrdersService {
   }
 
   async new(userId: number) {
-    // close all open orders
     await this.prismaService.order.updateMany({
       where: {
         userId,
@@ -105,7 +104,30 @@ export class OrdersService {
   }
 
   findAll() {
-    return `This action returns all orders`;
+    return this.prismaService.user.findMany({
+      where: {
+        role: 'CLIENT',
+        orders: {
+          some: {
+            status: 'OPEN',
+          },
+        },
+      },
+      include: {
+        orders: {
+          where: {
+            status: 'OPEN',
+          },
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   findOne(id: number) {

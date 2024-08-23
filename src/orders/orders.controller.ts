@@ -64,21 +64,29 @@ export class OrdersController {
     return this.ordersService.buy(user.id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Get()
   findAll() {
     return this.ordersService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(+id, updateOrderDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.MANAGER)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.ordersService.remove(+id);
