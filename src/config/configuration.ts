@@ -5,4 +5,7 @@ export default () => ({
     secret: process.env.JWT_SECRET || 'secret',
     expiration: process.env.JWT_EXPIRATION || '1h',
   },
+  token: {
+    expirationTime: parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600,
+  },
 });
