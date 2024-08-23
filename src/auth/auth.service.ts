@@ -59,6 +59,10 @@ export class AuthService {
     return { token };
   }
 
+  async forgotPassword(email: string) {
+    console.log('forgotPassword', email);
+  }
+
   private async generateToken(user: User) {
     const payload = { username: user.username, sub: user.id };
 

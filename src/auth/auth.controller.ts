@@ -3,6 +3,7 @@ import { SignInDto } from './dto/sign-in.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AuthService } from './auth.service';
+import { ForgotPaswordDto } from './dto/forgot-password.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -19,5 +20,11 @@ export class AuthController {
   @Post('register')
   signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
+  }
+
+  @Post('forgot-password')
+  forgotPassword(@Body() forgotPasswordDto: ForgotPaswordDto) {
+    const { email } = forgotPasswordDto;
+    return this.authService.forgotPassword(email);
   }
 }
