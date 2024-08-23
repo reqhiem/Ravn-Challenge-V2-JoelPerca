@@ -35,21 +35,25 @@ export class RolesGuard implements CanActivate {
     }
 
     const token = authHeader.split(' ')[1];
-    const decodedToken = this.jwtService.verify(token);
+    try {
+      const decodedToken = this.jwtService.verify(token);
 
-    const username = decodedToken.username;
-    const user = await this.prismaService.user.findFirstOrThrow({
-      where: {
-        username,
-      },
-    });
+      const username = decodedToken.username;
+      const user = await this.prismaService.user.findFirstOrThrow({
+        where: {
+          username,
+        },
+      });
 
-    const isAuthorized = this.matchRoles(roles, user);
+      const isAuthorized = this.matchRoles(roles, user);
 
-    if (!isAuthorized) {
-      throw new UnauthorizedException();
+      if (!isAuthorized) {
+        throw new UnauthorizedException();
+      }
+
+      return isAuthorized;
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
     }
-
-    return isAuthorized;
   }
 }
