@@ -84,15 +84,15 @@ export class AuthService {
     return this.jwtService.signAsync(payload);
   }
 
-  async changePassword(options: {
-    userId: number;
+  async resetPassword(options: {
+    email: string;
     token: string;
     password: string;
     passwordConfirmation: string;
   }) {
-    const { userId, token, password, passwordConfirmation } = options;
+    const { email, token, password, passwordConfirmation } = options;
     const user = await this.prisma.user.findFirst({
-      where: { id: userId },
+      where: { email },
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -115,7 +115,7 @@ export class AuthService {
 
     await Promise.all([
       this.prisma.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: { password: hashedPassword },
       }),
       this.sendPasswordChangeEmail(user.email),
