@@ -13,6 +13,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   ParseIntPipe,
+  Req,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -35,7 +36,8 @@ import { diskStorage } from 'multer';
 import { generateFilename } from 'src/lib/helper';
 import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { HasRoles } from 'src/auth/decorator/has-roles.decorator';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
+import { Request } from 'express';
 
 @ApiTags('products')
 @Controller('products')
@@ -194,5 +196,21 @@ export class ProductsController {
   @HasRoles(Role.MANAGER)
   disable(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.disable(id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.CLIENT)
+  @Patch(':id/like')
+  like(@Param('id', ParseIntPipe) id: number, @Req() request: Request) {
+    const user = request.user as User;
+    return this.productsService.like(id, user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @HasRoles(Role.CLIENT)
+  @Patch(':id/unlike')
+  unlike(@Param('id', ParseIntPipe) id: number, @Req() request: Request) {
+    const user = request.user as User;
+    return this.productsService.unlike(id, user.id);
   }
 }

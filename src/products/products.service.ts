@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -35,6 +35,7 @@ export class ProductsService {
       this.prismaService.product.findMany({
         skip,
         take: pageSize,
+        include: { likes: true, images: true },
       }),
       this.prismaService.product.count(),
     ]);
@@ -54,7 +55,7 @@ export class ProductsService {
   findOne(id: number) {
     return this.prismaService.product.findFirstOrThrow({
       where: { id },
-      include: { images: true },
+      include: { images: true, likes: true },
     });
   }
 
@@ -91,5 +92,41 @@ export class ProductsService {
       where: { id: productId },
       data: { isDisabled: true },
     });
+  }
+
+  async like(productId: number, userId: number) {
+    try {
+      const producLike = await this.prismaService.productLike.create({
+        data: {
+          productId,
+          userId,
+        },
+        include: { product: true },
+      });
+      return producLike;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new ConflictException('You already liked this product');
+      }
+    }
+  }
+
+  async unlike(productId: number, userId: number) {
+    try {
+      const unlikedProduct = await this.prismaService.productLike.delete({
+        where: {
+          userId_productId: {
+            productId,
+            userId,
+          },
+        },
+        include: { product: true },
+      });
+      return unlikedProduct;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new ConflictException('You have not liked this product');
+      }
+    }
   }
 }
