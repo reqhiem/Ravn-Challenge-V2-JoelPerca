@@ -33,6 +33,10 @@ export class AuthController {
     return this.authService.signUp(signUpDto);
   }
 
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Password reset email sent successfully',
+  })
   @HttpCode(HttpStatus.OK)
   @Post('forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPaswordDto) {

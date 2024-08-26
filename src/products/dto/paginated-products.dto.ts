@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { RetrieveProductDto } from './retrieve-product.dto';
 
 export class PaginationDto {
   @ApiProperty()
@@ -13,9 +14,10 @@ export class PaginationDto {
 
 export class PaginatedProductsDto {
   @ApiProperty({
-    type: () => [Object],
+    type: () => [RetrieveProductDto],
+    isArray: true,
   })
-  data: any[];
+  data: RetrieveProductDto[];
 
   @ApiProperty({ type: PaginationDto })
   pagination: PaginationDto;

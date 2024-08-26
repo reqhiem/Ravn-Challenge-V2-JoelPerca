@@ -19,6 +19,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiBearerAuth()
+  @ApiResponse({ status: 200, type: RetrieveUserDto, isArray: true })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HasRoles(Role.MANAGER)
   @Get()
@@ -26,6 +27,7 @@ export class UsersController {
     return await this.usersService.findAll();
   }
 
+  @ApiBearerAuth()
   @ApiParam({ name: 'id', type: 'number' })
   @ApiResponse({ status: 200, type: RetrieveUserDto })
   @UseGuards(JwtAuthGuard, RolesGuard)

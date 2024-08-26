@@ -103,7 +103,7 @@ export class ProductsService {
         },
         include: { product: true },
       });
-      return producLike;
+      return producLike.product;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new ConflictException('You already liked this product');
@@ -122,7 +122,7 @@ export class ProductsService {
         },
         include: { product: true },
       });
-      return unlikedProduct;
+      return unlikedProduct.product;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new ConflictException('You have not liked this product');

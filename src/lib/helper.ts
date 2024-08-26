@@ -8,7 +8,3 @@ export function generateFilename(file: Express.Multer.File): string {
   const ext = `.${nameTab[nameTab.length - 1]}`;
   return `${originalName}-${uniqueSuffix}${ext}`;
 }
-
-export function sendEmail(email: string) {
-  console.log('sendEmail', email);
-}

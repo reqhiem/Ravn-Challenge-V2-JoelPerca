@@ -5,10 +5,19 @@ export class RetrieveUserDto {
   id: number;
 
   @ApiProperty()
-  name: string;
+  username: string;
 
   @ApiProperty()
   email: string;
+
+  @ApiProperty()
+  firstName: string;
+
+  @ApiProperty()
+  lastName: string;
+
+  @ApiProperty()
+  role: string;
 
   @ApiProperty()
   createdAt: Date;

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { NotFoundTokenError } from 'src/lib/constants';
+import { NotFoundTokenError } from '../lib/constants';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -12,14 +12,15 @@ export class TokenService {
     private readonly configService: ConfigService,
   ) {}
 
-  async getOrGenerate(email: string): Promise<{ token: string; user: User }> {
-    const user = await this.getUserByEmail(email);
+  async getOrGenerate(
+    userInstance: User,
+  ): Promise<{ token: string; user: User }> {
     try {
-      const previousToken = await this.getToken(user.id);
+      const previousToken = await this.getToken(userInstance.id);
       return previousToken;
     } catch (error) {
       if (error instanceof NotFoundTokenError) {
-        return this.createToken(email, user.id);
+        return this.createOrUpdate(userInstance);
       }
     }
   }
@@ -37,23 +38,17 @@ export class TokenService {
     return { token: token.token, user: token.user };
   }
 
-  private getUserByEmail(email: string): Promise<User> {
-    return this.prismaService.user.findFirstOrThrow({
-      where: { email },
-    });
-  }
-
-  private async createToken(
-    email: string,
-    userId: number,
-  ): Promise<{
+  private async createOrUpdate(userInstance: User): Promise<{
     token: string;
     user: User;
   }> {
     const BCRYPT_SALT_ROUNDS =
       this.configService.get<number>('bcryptSaltRounds');
     const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-    const hashedEmail = await bcrypt.hash(email, salt);
+
+    const payload = { user: userInstance, timestamp: new Date() };
+    const payloadStringified = JSON.stringify(payload);
+    const hashedPayload = await bcrypt.hash(payloadStringified, salt);
 
     const EXPIRATION_TIME = this.configService.get<number>(
       'token.expirationTime',
@@ -62,9 +57,9 @@ export class TokenService {
     const expiresAt = new Date(currentDate.getTime() + EXPIRATION_TIME);
 
     const generatedToken = await this.prismaService.token.upsert({
-      where: { token: hashedEmail },
-      update: { expiresAt },
-      create: { token: hashedEmail, expiresAt, userId: userId },
+      where: { userId: userInstance.id },
+      update: { token: hashedPayload, expiresAt },
+      create: { token: hashedPayload, expiresAt, userId: userInstance.id },
       include: { user: true },
     });
 

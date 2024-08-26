@@ -4,15 +4,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { SignUpDto } from './dto/sign-up.dto';
 import { Prisma, User } from '@prisma/client';
 import { SignInDto } from './dto/sign-in.dto';
 import { ConfigService } from '@nestjs/config';
-import { MailgunClient } from 'src/lib/mailgun';
+import { MailgunClient } from '../lib/mailgun';
 import { MailgunMessageData } from 'mailgun.js';
-import { TokenService } from 'src/token/token.service';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class AuthService {
@@ -88,10 +88,11 @@ export class AuthService {
       throw new NotFoundException(`User not found for ${emailTo}`);
     }
 
-    const { token, user } = await this.tokenService.getOrGenerate(emailTo);
+    const { token, user } = await this.tokenService.getOrGenerate(findUser);
+    const uriEncodedToken = encodeURIComponent(token);
 
     const hostUrl = this.configService.get<string>('hostUrl');
-    const resetPasswordUrl = `${hostUrl}/reset-password?token=${token}&userId=${user.email}`;
+    const resetPasswordUrl = `${hostUrl}/reset-password?token=${uriEncodedToken}&user=${user.username}`;
     await this.sendPasswordResetEmail(emailTo, resetPasswordUrl);
   }
 
@@ -101,14 +102,14 @@ export class AuthService {
   }
 
   async resetPassword(options: {
-    email: string;
+    username: string;
     token: string;
     password: string;
     passwordConfirmation: string;
   }) {
-    const { email, token, password, passwordConfirmation } = options;
+    const { username, token, password, passwordConfirmation } = options;
     const user = await this.prisma.user.findFirst({
-      where: { email },
+      where: { username },
     });
     if (!user) {
       throw new NotFoundException('User not found');
