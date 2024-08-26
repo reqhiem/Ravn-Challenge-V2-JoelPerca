@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { AddProductsDto } from './dto/add-products.dto';
 import { OrderStatus } from '@prisma/client';
@@ -8,11 +6,6 @@ import { OrderStatus } from '@prisma/client';
 @Injectable()
 export class OrdersService {
   constructor(private readonly prismaService: PrismaService) {}
-  create(createOrderDto: CreateOrderDto) {
-    console.log(createOrderDto);
-    return 'This action adds a new order';
-  }
-
   async new(userId: number) {
     await this.prismaService.order.updateMany({
       where: {
@@ -31,10 +24,40 @@ export class OrdersService {
     });
   }
 
-  async add(userId: number, addProductsDto: AddProductsDto) {
+  async addProduct(userId: number, addProductsDto: AddProductsDto) {
     const activeOrder = await this.activeOrder(userId);
     const { productId, quantity } = addProductsDto;
-    return this.prismaService.orderItem.create({
+
+    const productInOrder = activeOrder.items.find(
+      (item) => item.productId === productId,
+    );
+
+    if (productInOrder) {
+      const updatedOrderItem = await this.prismaService.orderItem.update({
+        where: {
+          id: productInOrder.id,
+        },
+        data: {
+          quantity: productInOrder.quantity + quantity,
+        },
+        include: {
+          product: true,
+          order: {
+            include: {
+              items: {
+                include: {
+                  product: true,
+                },
+              },
+              user: true,
+            },
+          },
+        },
+      });
+      return updatedOrderItem.order;
+    }
+
+    const createdOrderItem = await this.prismaService.orderItem.create({
       data: {
         orderId: activeOrder.id,
         productId,
@@ -42,8 +65,19 @@ export class OrdersService {
       },
       include: {
         product: true,
+        order: {
+          include: {
+            items: {
+              include: {
+                product: true,
+              },
+            },
+            user: true,
+          },
+        },
       },
     });
+    return createdOrderItem.order;
   }
 
   async my(userId: number) {
@@ -58,6 +92,7 @@ export class OrdersService {
             product: true,
           },
         },
+        user: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -90,6 +125,7 @@ export class OrdersService {
             product: true,
           },
         },
+        user: true,
       },
     });
 
@@ -104,26 +140,24 @@ export class OrdersService {
   }
 
   findAll() {
-    return this.prismaService.user.findMany({
+    return this.prismaService.order.findMany({
       where: {
-        role: 'CLIENT',
-        orders: {
-          some: {
-            status: 'OPEN',
-          },
-        },
+        status: 'OPEN',
       },
       include: {
-        orders: {
-          where: {
-            status: 'OPEN',
-          },
+        items: {
           include: {
-            items: {
-              include: {
-                product: true,
-              },
-            },
+            product: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
           },
         },
       },
@@ -131,23 +165,38 @@ export class OrdersService {
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} order`;
+    return this.prismaService.order.findFirst({
+      where: {
+        id,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+      },
+    });
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    console.log(updateOrderDto);
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
-  }
-
-  async activeOrder(userId: number) {
+  private async activeOrder(userId: number) {
     const order = await this.prismaService.order.findFirst({
       where: {
         userId,
         status: 'OPEN',
+      },
+      include: {
+        items: true,
       },
     });
 
@@ -155,6 +204,9 @@ export class OrdersService {
       return this.prismaService.order.create({
         data: {
           userId,
+        },
+        include: {
+          items: true,
         },
       });
     }
