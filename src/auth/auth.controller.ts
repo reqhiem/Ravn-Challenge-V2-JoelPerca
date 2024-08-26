@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { SignInDto } from './dto/sign-in.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { SignInDto, SignInResponseDto } from './dto/sign-in.dto';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SignUpDto } from './dto/sign-up.dto';
 import { AuthService } from './auth.service';
 import { ForgotPaswordDto } from './dto/forgot-password.dto';
@@ -11,20 +11,30 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User signed in successfully',
+    type: SignInResponseDto,
+  })
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: SignInDto): Promise<{ access_token: string }> {
+  signIn(@Body() signInDto: SignInDto): Promise<SignInResponseDto> {
     return this.authService.signIn(signInDto);
   }
 
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'User registered successfully',
+    type: SignInResponseDto,
+  })
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  signUp(@Body() signUpDto: SignUpDto) {
+  signUp(@Body() signUpDto: SignUpDto): Promise<SignInResponseDto> {
     return this.authService.signUp(signUpDto);
   }
 
-  @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
+  @Post('forgot-password')
   forgotPassword(@Body() forgotPasswordDto: ForgotPaswordDto) {
     const { email } = forgotPasswordDto;
     return this.authService.forgotPassword(email);

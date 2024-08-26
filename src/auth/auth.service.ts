@@ -41,7 +41,15 @@ export class AuthService {
     }
 
     const token = await this.generateToken(user);
-    return { access_token: token };
+    return {
+      accessToken: token,
+      user: {
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    };
   }
 
   async signUp(data: SignUpDto) {
@@ -60,7 +68,15 @@ export class AuthService {
     });
 
     const token = await this.generateToken(user);
-    return { token };
+    return {
+      accessToken: token,
+      user: {
+        username: user.username,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    };
   }
 
   async forgotPassword(emailTo: string) {
