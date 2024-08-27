@@ -10,7 +10,7 @@ services:
     ports:
       - "5001:5000"
     env_file:
-      - ../.env.staging.local
+      - ../.env.production.local
     networks:
       - sip-savor-network
 
