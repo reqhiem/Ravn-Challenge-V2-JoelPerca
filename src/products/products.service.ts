@@ -27,18 +27,23 @@ export class ProductsService {
   async findAll(
     paginationQuery: PaginationQueryDto,
   ): Promise<PaginatedProductsDto> {
-    const { page, pageSize } = paginationQuery;
+    const { page, pageSize, search } = paginationQuery;
 
     const skip = (page - 1) * pageSize;
 
-    const [products, count] = await Promise.all([
-      this.prismaService.product.findMany({
-        skip,
-        take: pageSize,
-        include: { likes: true, images: true },
-      }),
-      this.prismaService.product.count(),
-    ]);
+    const products = await this.prismaService.product.findMany({
+      where: {
+        category: {
+          contains: search,
+          mode: 'insensitive',
+        },
+      },
+      skip,
+      take: pageSize,
+      include: { likes: true, images: true },
+    });
+
+    const count = products.length;
 
     const response: PaginatedProductsDto = {
       data: products,

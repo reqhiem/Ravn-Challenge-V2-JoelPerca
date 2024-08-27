@@ -19,4 +19,7 @@ export class PaginationQueryDto {
   @Min(1)
   @Max(100)
   pageSize: number = PAGE_SIZE;
+
+  @IsOptional()
+  search: string;
 }
