@@ -36,7 +36,7 @@ The swagger docs are available in https://api.sipandsavor.reqhiem.lat/api/v1/doc
 |--------------------|--------|
 | R1. Authentication endpoints (sign up, sign in, sign out) | ✅ |
 | R2. List products with pagination | ✅ |
-| R3. Search products by category | |
+| R3. Search products by category | ✅ |
 | R4. Add 2 kind of users (Manager, Client) | ✅ |
 | **As a Manager I can**   |
 | R5. Create products | ✅ |

@@ -88,6 +88,12 @@ export class ProductsController {
     required: false,
     description: 'Items per page',
   })
+  @ApiQuery({
+    name: 'search',
+    type: String,
+    required: false,
+    description: 'Search by category',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     type: PaginatedProductsDto,
