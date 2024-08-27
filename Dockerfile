@@ -19,6 +19,7 @@ COPY . .
 # Build the application
 RUN pnpm run build
 RUN pnpm dlx prisma generate
+RUN pnpm dlx prisma migrate deploy
 
 # Expose the application port
 EXPOSE 5000
