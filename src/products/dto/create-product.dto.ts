@@ -12,4 +12,7 @@ export class CreateProductDto {
 
   @ApiProperty()
   category: string;
+
+  @ApiProperty()
+  stock: number;
 }

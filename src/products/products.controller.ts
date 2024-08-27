@@ -23,6 +23,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
@@ -30,7 +31,6 @@ import {
 } from '@nestjs/swagger';
 import { PaginatedProductsDto } from './dto/paginated-products.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { Product } from './entities/product.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { generateFilename } from 'src/lib/helper';
@@ -38,12 +38,20 @@ import { RolesGuard } from 'src/auth/guard/roles.guard';
 import { HasRoles } from 'src/auth/decorator/has-roles.decorator';
 import { Role, User } from '@prisma/client';
 import { Request } from 'express';
+import {
+  RetrieveProductWithImagesDto,
+  RetrieveProductDto,
+} from './dto/retrieve-product.dto';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
+  @ApiOperation({
+    summary: 'Create a product',
+    description: 'Create a new product',
+  })
   @ApiBody({
     type: CreateProductDto,
   })
@@ -54,7 +62,7 @@ export class ProductsController {
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    type: Product,
+    type: RetrieveProductWithImagesDto,
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -64,6 +72,10 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
+  @ApiOperation({
+    summary: 'Retrieve all products',
+    description: 'Retrieve all products with pagination',
+  })
   @ApiQuery({
     name: 'page',
     type: Number,
@@ -88,6 +100,10 @@ export class ProductsController {
     return this.productsService.findAll(paginationQuery);
   }
 
+  @ApiOperation({
+    summary: 'Retrieve a product',
+    description: 'Retrieve a product by id',
+  })
   @ApiParam({
     name: 'id',
     type: Number,
@@ -95,13 +111,17 @@ export class ProductsController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Product,
+    type: RetrieveProductWithImagesDto,
   })
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.productsService.findOne(id);
   }
 
+  @ApiOperation({
+    summary: 'Update a product',
+    description: 'Update a product by id',
+  })
   @ApiParam({
     name: 'id',
     type: Number,
@@ -112,7 +132,7 @@ export class ProductsController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Product,
+    type: RetrieveProductWithImagesDto,
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -125,6 +145,10 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
+  @ApiOperation({
+    summary: 'Delete a product',
+    description: 'Delete a product by id',
+  })
   @ApiParam({
     name: 'id',
     type: Number,
@@ -132,7 +156,7 @@ export class ProductsController {
   })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: Product,
+    type: RetrieveProductWithImagesDto,
   })
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -142,6 +166,10 @@ export class ProductsController {
     return this.productsService.remove(+id);
   }
 
+  @ApiOperation({
+    summary: 'Upload images for a product',
+    description: 'Upload images for a product',
+  })
   @ApiParam({
     name: 'id',
     type: Number,
@@ -162,6 +190,10 @@ export class ProductsController {
         },
       },
     },
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: RetrieveProductWithImagesDto,
   })
   @ApiBearerAuth()
   @Post(':id/upload')
@@ -185,12 +217,20 @@ export class ProductsController {
     return this.productsService.uploadImage(+id, images);
   }
 
+  @ApiOperation({
+    summary: 'Disable a product',
+    description: 'Disable a product by id. This action requires MANAGER role',
+  })
   @ApiParam({
     name: 'id',
     type: Number,
     required: true,
   })
   @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: RetrieveProductDto,
+  })
   @Patch(':id/disable')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HasRoles(Role.MANAGER)
@@ -198,6 +238,20 @@ export class ProductsController {
     return this.productsService.disable(id);
   }
 
+  @ApiOperation({
+    summary: 'Like a product',
+    description: 'Like a product by id. This action requires CLIENT role',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: RetrieveProductDto,
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HasRoles(Role.CLIENT)
   @Patch(':id/like')
@@ -206,6 +260,20 @@ export class ProductsController {
     return this.productsService.like(id, user.id);
   }
 
+  @ApiOperation({
+    summary: 'Unlike a product',
+    description: 'Unlike a product by id. This action requires CLIENT role',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    required: true,
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: RetrieveProductDto,
+  })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HasRoles(Role.CLIENT)
   @Patch(':id/unlike')

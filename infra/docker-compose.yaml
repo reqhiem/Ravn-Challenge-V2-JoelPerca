@@ -11,7 +11,13 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: unless-stopped
+    networks:
+      - sip-savor-network
 
 volumes:
   db_data:
     driver: local
+
+networks:
+  sip-savor-network:
+    driver: bridge

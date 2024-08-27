@@ -1,3 +1,6 @@
+const SECOND = 1000;
+const MINUTE = 60 * SECOND;
+
 export default () => ({
   hostUrl: process.env.HOST_URL || 'http://localhost:5000',
   bcrytSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 10,
@@ -6,6 +9,6 @@ export default () => ({
     expiration: process.env.JWT_EXPIRATION || '1h',
   },
   token: {
-    expirationTime: parseInt(process.env.TOKEN_EXPIRATION_TIME) || 3600,
+    expirationTime: parseInt(process.env.TOKEN_EXPIRATION_TIME) || MINUTE * 3,
   },
 });
