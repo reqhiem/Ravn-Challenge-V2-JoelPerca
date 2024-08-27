@@ -1,0 +1,19 @@
+services:
+  api:
+    image: sip-savor-api
+    container_name: sip-savor-api
+    restart: always
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: pnpm run start:prod
+    ports:
+      - "5001:5000"
+    env_file:
+      - ../.env.staging.local
+    networks:
+      - sip-savor-network
+
+networks:
+  sip-savor-network:
+    driver: bridge

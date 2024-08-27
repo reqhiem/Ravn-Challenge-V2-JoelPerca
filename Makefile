@@ -21,3 +21,11 @@ migrate:
 .phony: hw
 hw:
 	- echo "Hello World $(name)"
+
+.phony: run-prod
+run-prod:
+	- cd $(INFRASTRUCTURE_DIR) && docker compose -f docker-compose.prod.yaml up --build
+
+.phony: stop-prod
+stop-prod:
+	- cd $(INFRASTRUCTURE_DIR) && docker compose -f docker-compose.prod.yaml stop
